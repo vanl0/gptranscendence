@@ -1,0 +1,13 @@
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: requirements/nginx/Dockerfile
+    ports:
+      - "8080:80"
+    networks:
+      - transcendence
+
+networks:
+  transcendence:
+    driver: bridge
