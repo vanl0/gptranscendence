@@ -2,9 +2,10 @@ import {
   Engine, Scene, ArcRotateCamera, Vector3,
   HemisphericLight, MeshBuilder, GlowLayer
 } from "@babylonjs/core";
+import { startPong } from "../startPong";
 import type { GameConfig, GameState } from "../types";
 
-export async function createScene3D(container: HTMLElement) {
+export function createScene3D(container: HTMLElement) {
   const canvas = document.createElement("canvas");
   canvas.style.width = "100%";
   canvas.style.height = "100%";
@@ -34,10 +35,16 @@ export async function createScene3D(container: HTMLElement) {
   // Fondo parecido al 2D
   scene.clearColor.set(0.03, 0.2, 0.27, 1);
 
-  window.addEventListener("resize", () => engine.resize());
-  engine.runRenderLoop(() => scene.render());
+  const handleResize = () => engine.resize();
+  window.addEventListener("resize", handleResize);
 
-  return { engine, scene, meshes: { table, left, right, ball } };
+  return {
+    engine,
+    scene,
+    canvas,
+    cleanup: () => window.removeEventListener("resize", handleResize),
+    meshes: { table, left, right, ball }
+  };
 }
 
 /** Mapea tu estado 2D (en píxeles) a coordenadas 3D “visuales” */
@@ -62,4 +69,79 @@ export function updateMeshesFromState(
 
   meshes.ball.position.x  = toX(state.ballX + c.ballSize / 2);
   meshes.ball.position.z  = toZ(state.ballY + c.ballSize / 2);
+}
+
+type PongCleanupHandle = (() => void) & {
+  getState?: () => GameState;
+  getConfig?: () => GameConfig;
+  getCanvas?: () => HTMLCanvasElement;
+};
+
+export function mountGame3D(
+  container: HTMLElement,
+  onGameOver: (winner: number) => void
+) {
+  const { engine, scene, canvas, meshes, cleanup: cleanupScene } = createScene3D(container);
+
+  const canvas2D = document.createElement("canvas");
+  canvas2D.style.position = "absolute";
+  canvas2D.style.top = "0";
+  canvas2D.style.left = "0";
+  canvas2D.style.width = "100%";
+  canvas2D.style.height = "100%";
+  canvas2D.style.opacity = "0";
+  canvas2D.style.pointerEvents = "none";
+  container.appendChild(canvas2D);
+
+  let disposed = false;
+  let cleanupPong: PongCleanupHandle;
+
+  const renderLoop = () => {
+    if (disposed) {
+      return;
+    }
+
+    const state = cleanupPong?.getState?.();
+    const config = cleanupPong?.getConfig?.();
+    const referenceCanvas = cleanupPong?.getCanvas?.() ?? canvas2D;
+
+    if (state && config && referenceCanvas) {
+      updateMeshesFromState(meshes, state, config, referenceCanvas);
+    }
+
+    scene.render();
+  };
+
+  function teardown() {
+    if (disposed) {
+      return;
+    }
+
+    disposed = true;
+    engine.stopRenderLoop(renderLoop);
+    cleanupPong?.();
+    cleanupScene();
+    engine.dispose();
+
+    if (canvas.parentElement === container) {
+      container.removeChild(canvas);
+    } else if (canvas.parentElement) {
+      canvas.parentElement.removeChild(canvas);
+    }
+
+    if (canvas2D.parentElement === container) {
+      container.removeChild(canvas2D);
+    } else if (canvas2D.parentElement) {
+      canvas2D.parentElement.removeChild(canvas2D);
+    }
+  }
+
+  cleanupPong = startPong(canvas2D, (winner) => {
+    teardown();
+    onGameOver(winner);
+  }) as PongCleanupHandle;
+
+  engine.runRenderLoop(renderLoop);
+
+  return teardown;
 }
