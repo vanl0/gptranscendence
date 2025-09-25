@@ -7,9 +7,9 @@ type RenderGameOptions = {
 };
 
 export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
-  const { player1 = "Player 1", player2 = "Player 2", onGameOver } = options;
+  const { player1 = "Player 1", player2 = "Player 2", onGameOver } = options; //definimos valores por defecto
 
-  const container = document.createElement("div");
+  const container = document.createElement("div");//creamos un div asociado a document(index.html) de momento en memoria no se aplica
   container.className =
     "flex flex-col justify-between items-center h-screen pt-[2vh] pb-[2vh] min-h-[400px] min-w-[600px] relative mx-auto my-auto";
 
@@ -47,14 +47,19 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
   root.innerHTML = ""; // clear old screen
   root.appendChild(container);
 
+  //redefinimos los bloques definidos en container
   const canvas = container.querySelector<HTMLCanvasElement>("#game-canvas")!;
   const gameContainer = container.querySelector<HTMLDivElement>("#game-container")!;
   const backHomeButton = container.querySelector<HTMLAnchorElement>("#back-home")!;
 
+  //funcion vacia
   let stopGame: () => void;
 
-  requestAnimationFrame(() => {
-    stopGame = startPong(canvas, (winner: number) => {
+  //funcion de js, se ejecuta antes de cada nuevo frame, y ejecuta la funcion pasada como parametro
+  requestAnimationFrame(() => 
+    {
+    stopGame = startPong(canvas, (winner: number) => 
+      {
       const overlay = document.createElement("div");
       overlay.className = "absolute inset-0 flex justify-center items-center";
       overlay.innerHTML = `
@@ -67,7 +72,8 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
       gameContainer.appendChild(overlay);
 
       if (onGameOver) {
-        setTimeout(() => {
+        setTimeout(() => 
+          {
           onGameOver(winner);
         }, 2000);
       }
