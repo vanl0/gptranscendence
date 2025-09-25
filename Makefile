@@ -31,6 +31,10 @@ up:
 	$(DC) up -d
 	@echo "$(GREEN)Ok!$(RESET)"
 
+dev:
+	@echo "$(YELLOW)Starting frontend dev container...$(RESET)"
+	$(DC) --profile dev up --build frontend-dev
+
 re: fclean all
 
-.PHONY: all clean fclean ts build up re
+.PHONY: all clean fclean ts build up dev re
