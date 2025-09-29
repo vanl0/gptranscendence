@@ -2,6 +2,21 @@
 
 **To access the website, visit http://localhost:8080**
 
+### Frontend live-reload during development
+
+When you want to iterate on the TypeScript sources without rebuilding the
+containers, start the Vite dev server profile:
+
+```bash
+docker compose --profile dev up frontend-dev
+```
+
+This boots a container that mounts `srcs/frontend` from your host and exposes
+Vite on http://localhost:5173 with hot-module replacement.
+
+Files saved under `srcs/frontend` (including `.ts` files) are recompiled and
+refreshed automatically.
+
 If you don't have a clue how anything works, this very simple pong game gives a good idea of the basic stuff:
 
 https://www.geeksforgeeks.org/javascript/pong-game-in-javascript/
