@@ -9,7 +9,9 @@
     "clean": "rm -rf node_modules dist"
   },
   "dependencies": {
+    "@babylonjs/core": "8.28.1",
     "@babylonjs/loaders": "8.28.1",
+    "@babylonjs/materials": "8.28.1",
     "babylonjs": "^8.29.0"
   },
   "devDependencies": {
