@@ -1,0 +1,23 @@
+services:
+  api:
+    container_name: api
+    build:
+      context: ../src
+      dockerfile: ../docker/Dockerfile
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-fk", "https://localhost:3000/health"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    develop:
+      watch:
+        - action: sync+restart
+          path: ../src
+          target: /app
+          initial_sync: true
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ../src/package.json

@@ -1,0 +1,43 @@
+name: trascendence
+services:
+  proxy:
+    depends_on:
+      - frontend
+      - api
+    ports:
+      - '4433:443'
+    extends:
+      file: backend/proxy/docker/docker-compose.proxy.yml
+      service: proxy
+
+  frontend:
+    extends:
+      file: frontend/docker/docker-compose.frontend.yml
+      service: frontend
+
+  api:
+    depends_on:
+      - users
+      - tournaments
+    extends:
+      file: backend/api/docker/docker-compose.api.yml
+      service: api
+
+  users:
+    env_file:
+      - .env
+    environment:
+      - JWT_SECRET
+    extends:
+      file: backend/users/docker/docker-compose.users.yml
+      service: users
+    
+
+  tournaments:
+    extends:
+      file: backend/tournaments/docker/docker-compose.tournaments.yml
+      service: tournaments
+
+volumes:
+  users_data: null
+  tournaments_data: null
