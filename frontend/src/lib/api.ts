@@ -26,8 +26,12 @@ function inferApiBase(): string {
   if (typeof window !== "undefined" && window.location.hostname === "localhost" && window.location.port === "5173") {
     return "http://localhost:3000";
   }
-  // Fallback (prod / nginx bundle): keep https
-  return "http://localhost:3000";
+  // Otherwise prefer same-origin so we don't trigger mixed-content errors when served over HTTPS
+  if (typeof window !== "undefined" && window.location.origin) {
+    return window.location.origin;
+  }
+  // Last resort: assume API gateway default
+  return "https://localhost";
 }
 const API_BASE = inferApiBase();
 
@@ -131,6 +135,23 @@ export const api = {
   del: <T = unknown>(path: string, auth = true) =>
     request<T>(path, { method: "DELETE", auth }),
 };
+
+export type RegisterUserResponse = {
+  id: number;
+  username: string;
+  created_at: string;
+};
+
+export async function registerUser(params: {
+  username: string;
+  password: string;
+}): Promise<RegisterUserResponse> {
+  return request<RegisterUserResponse>("/api/users/register", {
+    method: "POST",
+    body: params,
+    auth: false,
+  });
+}
 
 // ---------- Auth ----------
 export type AuthUser = {
@@ -248,6 +269,7 @@ export default {
   setAccessToken,
   isAuthenticated,
   signup,
+  registerUser,
   login,
   logout,
   getMe,
