@@ -132,6 +132,23 @@ export const api = {
     request<T>(path, { method: "DELETE", auth }),
 };
 
+export type RegisterUserResponse = {
+  id: number;
+  username: string;
+  created_at: string;
+};
+
+export async function registerUser(params: {
+  username: string;
+  password: string;
+}): Promise<RegisterUserResponse> {
+  return request<RegisterUserResponse>("/api/users/register", {
+    method: "POST",
+    body: params,
+    auth: false,
+  });
+}
+
 // ---------- Auth ----------
 export type AuthUser = {
   id: string;
@@ -248,6 +265,7 @@ export default {
   setAccessToken,
   isAuthenticated,
   signup,
+  registerUser,
   login,
   logout,
   getMe,

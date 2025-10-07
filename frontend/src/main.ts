@@ -3,6 +3,7 @@ import { renderGame } from "./views/Game";
 import { renderResults } from "./views/Results";
 import { renderTournament} from "./views/Tournament";
 import { renderGame3D } from "./views/Game3D"; // 👈 importa tu nueva vista
+import { renderRegister } from "./views/Register";
 
 function router() {
   const app = document.getElementById("app")!;
@@ -23,6 +24,9 @@ function router() {
       break;
     case "#/results":
       renderResults(app);
+      break;
+    case "#/register":
+      renderRegister(app);
       break;
     default:
       renderHome(app);
