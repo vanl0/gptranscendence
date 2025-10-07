@@ -15,12 +15,14 @@ const optsFastify = {
     }
   },
     https: {
+      allowHTTP1: true,
       key: fs.readFileSync("/app/certs/key.pem"),
       cert: fs.readFileSync("/app/certs/cert.pem"),
-    }
+    },
+    http2: true
 }
 
-const app = buildFastify(optsFastify, DB_NAME);
+const { app } = buildFastify(optsFastify, DB_NAME);
 
 app.listen({ host: '0.0.0.0', port: PORT }, (err) => {
   if (err) {

@@ -1,5 +1,6 @@
 const fs = require('fs')
 const Fastify = require('fastify');
+const { applyRelaxedSecurityHeaders, applySecurityHeaders } = require('./securityHeaders');
 
 const PORT = 443;
 const API_PORT = 3000;
@@ -16,12 +17,12 @@ const server = Fastify({
 	  }
 	},
 	https: {
+		allowHTTP1: true,
 	  key: fs.readFileSync("/app/certs/key.pem"),
 	  cert: fs.readFileSync("/app/certs/cert.pem"),
-	}
+	},
+	http2: true
 });
-
-const proxy = require('@fastify/http-proxy');
 
 const routes = [
   { prefix: '/api', url: `https://api:${API_PORT}` },
@@ -29,14 +30,13 @@ const routes = [
 ];
 
 routes.forEach((route) => {
-  server.register(proxy, {
-	upstream: route.url,
-	prefix: route.prefix,
-	http2: false
-  });
+  server.register(require('@fastify/http-proxy'), {
+		upstream: route.url,
+		prefix: route.prefix,
+	});
 });
 
-server.setErrorHandler((error, request, reply) => {
+server.setErrorHandler((error, _request, reply) => {
   if (error.code === 'UND_ERR_SOCKET' || error.code === 'ECONNREFUSED') {
 	server.log.error(`Upstream service unavailable: ${error.message}`);
 	reply.code(503).send({ 
@@ -49,7 +49,18 @@ server.setErrorHandler((error, request, reply) => {
   }
 });
 
-server.get('/health', async (request, reply) => {
+server.addHook('onRequest', async (request, reply) => {
+  const url = request.url;
+
+	if (url === '/')
+		applySecurityHeaders(reply, "default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com");
+  else if (url.endsWith('/health'))
+    applyRelaxedSecurityHeaders(reply);
+	else if (url.startsWith('/api'))
+		applySecurityHeaders(reply);
+});
+
+server.get('/health', async (_request, _reply) => {
   return { status: 'ok' };
 });
 

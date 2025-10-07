@@ -1,5 +1,6 @@
 const Database = require('better-sqlite3');
 const { JSONError } = require('./schemas');
+const bcrypt = require('bcrypt');
 
 class UsersDatabase extends Database {
   constructor(filename) {
@@ -9,8 +10,7 @@ class UsersDatabase extends Database {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        is_admin BOOLEAN DEFAULT 0
+        created_at TEXT NOT NULL
       );
 
       CREATE TABLE IF NOT EXISTS users_profile (
@@ -50,7 +50,8 @@ class UsersDatabase extends Database {
   addUser(username, password) {
     try {
       const stmt = this.prepare('INSERT INTO users_auth (username, password, created_at) VALUES (?, ?, datetime(\'now\'))');
-      stmt.run(username, password);
+      stmt.run(username, bcrypt.hashSync(password, 10));
+
       const info = this.prepare('SELECT id, username, created_at FROM users_auth WHERE username = ?').get(username);
 
       const profileStmt = this.prepare('INSERT INTO users_profile (user_id) VALUES (?)');
@@ -61,6 +62,15 @@ class UsersDatabase extends Database {
       if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
         error = JSONError('Username already exists', 409, error.code);
       }
+      throw error;
+    }
+  }
+
+  getAllUsers() {
+    try {
+      const stmt = this.prepare('SELECT id, username, created_at FROM users_auth');
+      return stmt.all();
+    } catch (error) {
       throw error;
     }
   }
