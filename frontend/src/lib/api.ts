@@ -26,8 +26,12 @@ function inferApiBase(): string {
   if (typeof window !== "undefined" && window.location.hostname === "localhost" && window.location.port === "5173") {
     return "http://localhost:3000";
   }
-  // Fallback (prod / nginx bundle): keep https
-  return "http://localhost:3000";
+  // Otherwise prefer same-origin so we don't trigger mixed-content errors when served over HTTPS
+  if (typeof window !== "undefined" && window.location.origin) {
+    return window.location.origin;
+  }
+  // Last resort: assume API gateway default
+  return "https://localhost";
 }
 const API_BASE = inferApiBase();
 
