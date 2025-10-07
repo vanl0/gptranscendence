@@ -1,0 +1,30 @@
+declare module "babylonjs" {
+  export const Engine: any;
+  export type Engine = any;
+  export const Scene: any;
+  export type Scene = any;
+  export const ArcRotateCamera: any;
+  export type ArcRotateCamera = any;
+  export const Vector3: any;
+  export type Vector3 = any;
+  export const HemisphericLight: any;
+  export type HemisphericLight = any;
+  export const MeshBuilder: any;
+  export const Mesh: any;
+  export type Mesh = any;
+  export const Color3: any;
+  export type Color3 = any;
+  export const StandardMaterial: any;
+  export type StandardMaterial = any;
+  export const DynamicTexture: any;
+  export type DynamicTexture = any;
+  export const Texture: any;
+  export type Texture = any;
+  export const Sound: any;
+  export const AssetsManager: any;
+  export type AssetsManager = any;
+  export const AbstractMesh: any;
+  export type AbstractMesh = any;
+  export const Nullable: any;
+  export type Nullable<T> = T | null;
+}
