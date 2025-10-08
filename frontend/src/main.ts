@@ -1,9 +1,11 @@
 import { renderHome } from "./views/Home";
 import { renderGame } from "./views/Game";
 import { renderResults } from "./views/Results";
+import { renderLogin } from "./views/Login";
 import { renderTournament} from "./views/Tournament";
-import { renderGame3D } from "./views/Game3D"; // 👈 importa tu nueva vista
+import { renderGame3D } from "./views/Game3D";
 import { renderRegister } from "./views/Register";
+import { renderProfile } from "./views/Profile";
 
 function router() {
   const app = document.getElementById("app")!;
@@ -16,7 +18,7 @@ function router() {
     case "#/2players":
       renderGame(app);
       break;
-    case "#/game3d":              // 👈 nueva ruta
+    case "#/game3d":
       renderGame3D(app);
       break;
     case "#/tournament":
@@ -25,8 +27,14 @@ function router() {
     case "#/results":
       renderResults(app);
       break;
+    case "#/login":
+      renderLogin(app);
+      break;
     case "#/register":
       renderRegister(app);
+      break;
+    case "#/profile":
+      renderProfile(app);
       break;
     default:
       renderHome(app);

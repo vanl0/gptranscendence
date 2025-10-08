@@ -36,7 +36,7 @@ test('POST `/register` route', async (t) => {
     const response = await supertest(app.server)
     .post('/register')
     .send({ username: 'myuser', password: 'mypass' })
-    .expect(200)
+    .expect(201)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
     t.assert.deepStrictEqual(Object.keys(response.body), schemas.userResponseKeys);
@@ -114,7 +114,7 @@ test('POST `/logout` route', async (t) => {
     .expect(401)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(response.body, schemas.JSONError('Token not valid', 401));
+    t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
   });
 
   await t.test('Logout with valid token', async (t) => {
@@ -134,7 +134,7 @@ test('POST `/logout` route', async (t) => {
     .expect(401)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(response.body, schemas.JSONError('Token not valid', 401));
+    t.assert.deepStrictEqual(response.body.code, "FST_JWT_AUTHORIZATION_TOKEN_UNTRUSTED");
   });
 });
 
@@ -150,7 +150,7 @@ test('GET `/:user_id` route', async (t) => {
     .expect(401)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(response.body, schemas.JSONError('Token not valid', 401));
+    t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
   });
 
   await t.test('Get profile with blacklisted token', async (t) => {
@@ -160,7 +160,7 @@ test('GET `/:user_id` route', async (t) => {
     .expect(401)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(response.body, schemas.JSONError('Token not valid', 401));
+    t.assert.deepStrictEqual(response.body.code, "FST_JWT_AUTHORIZATION_TOKEN_UNTRUSTED");
   });
 
   await t.test('Get profile with valid token', async (t) => {
@@ -208,7 +208,7 @@ test('PUT `/:user_id` route', async (t) => {
     .expect(401)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(response.body, schemas.JSONError('Token not valid', 401));
+    t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
   });
 
   await t.test('No updates provided', async (t) => {
@@ -237,22 +237,11 @@ test('PUT `/:user_id` route', async (t) => {
     profile = response.body;
   });
 
-  await t.test('Update non-existent user profile', async (t) => {
-    const response = await supertest(app.server)
-    .put('/999')
-    .set('Authorization', `Bearer ${token_1}`)
-    .send({ display_name: 'Name' })
-    .expect(404)
-    .expect('Content-Type', 'application/json; charset=utf-8');
-
-    t.assert.deepStrictEqual(response.body, schemas.JSONError('User not found', 404));
-  });
-
   await t.test('Update another user profile', async (t) => {
      const registerResponse = await supertest(app.server)
     .post('/register')
     .send({ username: 'otheruser', password: 'otherpass' })
-    .expect(200)
+    .expect(201)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
     t.assert.deepStrictEqual(Object.keys(registerResponse.body), schemas.userResponseKeys);

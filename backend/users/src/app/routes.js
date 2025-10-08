@@ -2,96 +2,111 @@ const schemas = require('./schemas');
 const { v6: uuidv6 } = require('uuid');
 const tokenBlacklist = new Set();
 
-function routes(fastify, db) {
-	fastify.get('/', {
-		preHandler: fastify.auth([
-			fastify.verifyJWT
-		])}, async (_request, _reply) => {
-			return db.getAllUsers();
+function routes(app, db) {
+	app.get('/', async (request, reply) => {
+			request.log.info('Fetching all users');
+			const users = db.getAllUsers();
+			return reply.send(users);
 		}
 	);
 
-	fastify.get('/health', async (_request, _reply) => {
-		return { status: 'ok' };
+	app.get('/health', async (_request, reply) => {
+		return reply.send({ status: 'ok' });
 	});
 
-	fastify.post('/register',
+	app.post('/register',
 		{ schema: { body: schemas.usernameAndPasswordSchema } },
 		async (request, reply) => {
 			request.log.info('Creating new user');
 			try {
 				const info = db.addUser(request.body.username, request.body.password);
 
-				reply.send(info);
+				return reply.status(201).send(info);
 			} catch (err) {
 				throw err;
 			}
 		}
 	);
 
-	fastify.post('/login', {
+	app.post('/login', {
 			schema: { body: schemas.usernameAndPasswordSchema },
-			preHandler: fastify.auth([
-				fastify.verifyUserAndPassword,
-			]),
-		}, async (request, _reply) => {
-			request.log.info('User logging in');
-			try {
-				const token = fastify.jwt.sign({
-					username: request.body.username,
-					jti: uuidv6()}, { expiresIn: '1h' });
-				return { token };
-			} catch (err) {
-				throw err;
-			}
-		}
-	);
-
-	fastify.post('/logout', {
-			preHandler: fastify.auth([
-				fastify.verifyJWT,
+			preHandler: app.auth([
+				app.verifyUserAndPassword,
 			]),
 		}, async (request, reply) => {
-			request.log.info('User logging out');
-			try {				
-				tokenBlacklist.add(request.user.jti);
-				reply.send({ message: 'Logged out successfully' });
+			request.log.info('User logging in');
+			try {
+				const token = app.jwt.sign({
+					username: request.body.username,
+					jti: uuidv6()}, { expiresIn: '1h' });
+				return reply.send({ token });
 			} catch (err) {
+				throw err;
+			}
+		}
+	);
+
+	app.post('/logout', {
+		preHandler: app.auth([
+			app.verifyJWT
+		])
+	}, async (request, reply) => {
+		request.log.info('User logging out');
+		try {
+			tokenBlacklist.add(request.user.jti);
+			return reply.send({ message: 'Logged out successfully' });
+		} catch (err) {
 					throw err;
 			}
 		}
 	);
 
-	fastify.get('/:user_id', {
-			preHandler: fastify.auth([
-				fastify.verifyJWT,
-			]),
-		}, async (request, reply) => {
+	app.get('/:user_id', {
+			preHandler: app.auth([
+				app.verifyJWT
+			])
+		},
+		async (request, reply) => {
 			request.log.info('Fetching user profile');
 			try {
 				const info = db.getProfile(request.params.user_id);
-				reply.send(info);
+				return reply.send(info);
 			} catch (err) {
 				throw err;
 			}
 		}
 	);
 
-	fastify.put('/:user_id', {
-			preHandler: fastify.auth([
-				fastify.verifyJWT,
-				fastify.verifyUserOwnership
-			], { relation: 'and' }),
+	app.put('/:user_id', {
+			preHandler: app.auth([[
+				app.verifyJWT,
+				app.verifyUserOwnership
+			], app.verifyAdminJWT], { relation: 'or' }),
 		}, async (request, reply) => {
 			request.log.info('Updating user profile');
 			try {
 				const info = db.updateProfile(request.params.user_id, request.body);
-				reply.send(info);
+				return reply.send(info);
 			} catch (err) {
 				throw err;
 			}
 		}
 	);
+
+	app.delete('/:user_id', {
+		preHandler: app.auth([
+			app.verifyUserOwnership,
+			app.verifyAdminJWT
+		], { relation: 'or' })
+	}, async (request, reply) => {
+		request.log.info('Deleting user');
+		try {
+			db.deleteUser(request.params.user_id);
+			return reply.send({ message: 'User deleted' });
+		} catch (err) {
+			throw err;
+		}
+	});
 }
 
 module.exports = { routes, tokenBlacklist };

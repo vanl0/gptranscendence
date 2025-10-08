@@ -6,7 +6,15 @@ export function renderHome(root: HTMLElement) {
   container.className =
     "flex flex-col justify-center items-center min-h-[400px] min-w-[600px] gap-[2vh] pb-[5vh] h-screen mx-auto my-auto";
 
-  container.innerHTML = `
+    container.innerHTML = `
+    <div class="absolute top-[2vh] right-[3vw] group">
+      <a href="#/login"
+        class="font-bit text-[2.5vh] text-gray-100 border-2 border-gray-100 rounded-full px-6 py-2 
+          transition-all duration-300 hover:bg-gray-100 hover:text-cyan-900">
+        Login
+      </a>
+    </div>
+  
     <h1 class="font-honk text-[20vh] animate-wobble">Pong</h1>
 
     <div class="relative group flex items-center">
@@ -67,19 +75,6 @@ export function renderHome(root: HTMLElement) {
             : 'bg-gray-300 border-gray-400 shadow-[inset_0_2px_0_rgba(255,255,255,0.25)]'}">
         </div>
       </label>
-    </div>
-
-    <div class="relative group flex items-center">
-      <a href="#/register"
-        class="flex items-center justify-center w-[25vw] h-[8vh] rounded-full min-w-[300px]
-               border-2 border-gray-100 text-gray-900 font-bit text-[5vh]
-               transition-colors duration-300 bg-gray-100 hover:bg-cyan-200">
-        Register
-      </a>
-      <span class="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-3 py-1 rounded bg-black text-gray-100
-                   text-[2vh] font-bit opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-        Create your account to save progress
-      </span>
     </div>
   `;
 

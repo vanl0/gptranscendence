@@ -9,7 +9,6 @@
     "isolatedModules": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": [],
 
     "baseUrl": ".",
     "paths": {

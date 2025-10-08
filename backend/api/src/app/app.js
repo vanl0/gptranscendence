@@ -15,31 +15,29 @@ function buildFastify(opts) {
     routes(app);
   });
 
-  app.decorate('verifyJWT', async (request, _reply, done) => {
+  app.decorate('verifyJWT', async (request, _reply) => {
     try {
       await request.jwtVerify();
     } catch (err) {
-      return done(JSONError('Token not valid', 401));
+      reply.send(JSONError('Token not valid', 401));
     }
-    return done();
   });
 
-  app.decorate('verifyAdminCredentials', async (request, _reply, done) => {
+  app.decorate('verifyAdminCredentials', (request, _reply, done) => {
     try {
       if (request.body.admin_password !== process.env.ADMIN_PASSWORD)
-        throw new JSONError('Admin credentials are invalid', 401);
+        throw JSONError('Admin credentials are invalid', 401);
     } catch (err) {
       return done(err);
     }
     return done();
   });
 
-  app.decorate('verifyInternalApiKey', async (request, reply, done) => {
+  app.decorate('verifyInternalApiKey', (request, reply, done) => {
     try {
       const apiKey = request.headers['x-internal-api-key'];
-      if (!apiKey || apiKey !== process.env.INTERNAL_API_KEY) {
-        throw new JSONError('Invalid API Key', 401);
-      }
+      if (!apiKey || apiKey !== process.env.INTERNAL_API_KEY)
+        throw JSONError('Invalid API Key', 401);
     } catch (err) {
       return done(err);
     }
