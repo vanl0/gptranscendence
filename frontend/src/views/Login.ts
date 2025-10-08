@@ -1,3 +1,25 @@
+import { API_BASE, INTERNAL_API_KEY, setAccessToken } from "../lib/api";
+
+function resolveGatewayBase(): string {
+  if (typeof window !== "undefined") {
+    const { origin, port } = window.location;
+    // When the SPA is served through the proxy (e.g. docker compose), reuse the same origin so
+    // requests stay within the gateway and avoid CORS/TLS issues.
+    if (port !== "5173") {
+      return origin.replace(/\/$/, "");
+    }
+  }
+  return API_BASE.replace(/\/$/, "");
+}
+
+function getInternalApiKey(): string | undefined {
+  if (INTERNAL_API_KEY) return INTERNAL_API_KEY;
+  console.warn(
+    "Missing INTERNAL_API_KEY. Set VITE_INTERNAL_API_KEY in the frontend environment to allow calling protected API routes."
+  );
+  return undefined;
+}
+
 export function renderLogin(root: HTMLElement) {
   const container = document.createElement("div");
   container.className =
@@ -60,33 +82,39 @@ export function renderLogin(root: HTMLElement) {
     const username = (container.querySelector("#username") as HTMLInputElement).value;
     const password = (container.querySelector("#password") as HTMLInputElement).value;
     console.log("Login attempt:", { username, password });
-     
-    try{
-    const response = await window.fetch('https://localhost/api/users/login', {
-		method: 'POST',
-		headers: {
-			'content-type': 'application/json;charset=UTF-8',
-      'x-internal-api-key': 'd76cc0f53fc1ff04eecd8a899f5ce6149ca9e0eae746c0cbf72563b8c6332eae',
-		},
-		body: JSON.stringify({
-			username: username,
-			password: password,
-		}),
-	})
+    try {
+      const gatewayBase = resolveGatewayBase();
+      const url = `${gatewayBase}/api/users/login`;
+      const headers: Record<string, string> = {
+        "content-type": "application/json;charset=UTF-8",
+      };
+      const apiKey = getInternalApiKey();
+      if (apiKey) headers["x-internal-api-key"] = apiKey;
 
-  console.log("faafasarraw");
-  
-  const { data, errors } = await response.json()
-	if (response.ok) {
-		console.log(data);
-    console.log("response ok");
-	} else {
-		// handle the graphql errors
-		console.log(errors);
-    console.log("error");
-	}
-} catch (err) {
-  console.error("Login failed:", err);
-}
+      const response = await window.fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        console.error("Login failed:", payload);
+        return;
+      }
+
+      const token = payload?.token;
+      if (typeof token === "string" && token.length > 0) {
+        setAccessToken(token);
+        console.log("Login successful");
+      } else {
+        console.warn("Login succeeded but no token was returned.", payload);
+      }
+    } catch (err) {
+      console.error("Login failed:", err);
+    }
   });
 }
