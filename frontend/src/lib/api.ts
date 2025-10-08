@@ -24,12 +24,15 @@ function inferApiBase(): string {
   if (override) return override;
   // When running via Vite (http://localhost:5173), talk to gateway over HTTP:3000
   if (typeof window !== "undefined" && window.location.hostname === "localhost" && window.location.port === "5173") {
-    return "http://localhost:3000";
+    return "https://localhost:3000";
   }
   // Fallback (prod / nginx bundle): keep https
-  return "http://localhost:3000";
+  return "https://localhost:3000";
 }
-const API_BASE = inferApiBase();
+export const API_BASE = inferApiBase();
+const INTERNAL_API_KEY =
+  ((typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_INTERNAL_API_KEY) as string | undefined) ||
+  "";
 
 const ACCESS_TOKEN_KEY = "auth.accessToken";
 
@@ -75,6 +78,7 @@ type FetchOpts = {
   body?: Json;
   auth?: boolean; // default true for protected routes
   signal?: AbortSignal;
+  headers?: Record<string, string>;
 };
 
 // Low-level: return both Response and parsed data
@@ -86,6 +90,9 @@ async function requestRaw(path: string, opts: FetchOpts = {}): Promise<{ data: a
   const auth = opts.auth !== false; // default true
   const token = getAccessToken();
   if (auth && token) headers["authorization"] = `Bearer ${token}`;
+  if (opts.headers) {
+    Object.assign(headers, opts.headers);
+  }
 
   const response = await fetch(url, {
     method: opts.method || "GET",
@@ -241,6 +248,8 @@ export function displayName(u: AuthUser | null): string {
 export async function pingAuth(): Promise<{ status: string }> {
   return api.get<{ status: string }>("/auth/healthz", false);
 }
+
+export { INTERNAL_API_KEY };
 
 export default {
   API_BASE,
