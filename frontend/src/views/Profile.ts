@@ -1,23 +1,32 @@
 import { getUsernameFromToken } from "@/userUtils/TokenUtils";
+import { getUserId, getUserData, UserData } from "@/userUtils/UserStats";
 import { logout } from "@/userUtils/LogoutUser";
 
-export function renderProfile(root: HTMLElement) {
+export async function renderProfile(root: HTMLElement) {
   const container = document.createElement("div");
   container.className =
     "flex flex-col items-center justify-start min-h-[400px] min-w-[600px] gap-[3vh] pb-[5vh] h-screen pt-[8vh]";
 
   // Datos base
   const token = localStorage.getItem("auth_token");
-  let username = "Player"; // valor por defecto
+  let username = "Player";
+  let data: UserData | null = null;
 
   if (token) {
     const decoded = getUsernameFromToken(token);
-    if (decoded) username = decoded;
+    if (decoded) {
+      username = decoded;
+      const userId = await getUserId(decoded);
+      if (!userId) throw new Error("User ID not found");
+      data = await getUserData(userId);
+    }
   }
-  const avatarUrl = new URL("../avatarDefault/avatar.png", import.meta.url).href;
-  const wins = 15;
-  const losses = 10;
-  const totalGames = wins + losses;
+
+  // Fallbacks si no hay datos
+  const avatarUrl = data?.avatar_url || new URL("../avatarDefault/avatar.png", import.meta.url).href;
+  const wins = data?.stats.wins ?? 0;
+  const losses = data?.stats.losses ?? 0;
+  const totalGames = data?.stats.total_games ?? wins + losses;
   const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
 
   container.innerHTML = `
