@@ -1,3 +1,6 @@
+import { login } from "@/userUtils/LoginUser";
+import { register } from "@/userUtils/RegisterUser";
+
 export function renderRegister(root: HTMLElement) {
   const container = document.createElement("div");
   container.className =
@@ -45,11 +48,19 @@ export function renderRegister(root: HTMLElement) {
   root.appendChild(container);
 
   const form = container.querySelector("#register-form") as HTMLFormElement;
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const username = (container.querySelector("#username") as HTMLInputElement).value;
     const password = (container.querySelector("#password") as HTMLInputElement).value;
     console.log("Register attempt:", { username, password });
-    
+
+    try {
+      await register(username, password);
+      alert("Registration successful! You can now log in.");
+      await login(username, password);
+    } catch (err) {
+      alert(`Registration failed: ${(err as Error).message}`);
+    }
   });
+
 }

@@ -5,8 +5,12 @@ services:
       context: ../
       dockerfile: docker/Dockerfile
     restart: always
+    environment:
+      - FRONTEND_PORT
+      - VITE_INTERNAL_API_KEY=${INTERNAL_API_KEY}
+      - VITE_API_PORT=${API_PORT}
     healthcheck:
-      test: ["CMD", "curl", "-fk", "https://localhost:3001" ]
+      test: ["CMD", "curl", "-fk", "https://localhost:$FRONTEND_PORT/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -15,7 +19,6 @@ services:
         - action: sync+restart
           path: ../
           target: /app
-          #initial_sync: true
           ignore:
             - node_modules/
         - action: rebuild

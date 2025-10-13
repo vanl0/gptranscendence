@@ -1,24 +1,4 @@
-import { API_BASE, INTERNAL_API_KEY, setAccessToken } from "../lib/api";
-
-function resolveGatewayBase(): string {
-  if (typeof window !== "undefined") {
-    const { origin, port } = window.location;
-    // When the SPA is served through the proxy (e.g. docker compose), reuse the same origin so
-    // requests stay within the gateway and avoid CORS/TLS issues.
-    if (port !== "5173") {
-      return origin.replace(/\/$/, "");
-    }
-  }
-  return API_BASE.replace(/\/$/, "");
-}
-
-function getInternalApiKey(): string | undefined {
-  if (INTERNAL_API_KEY) return INTERNAL_API_KEY;
-  console.warn(
-    "Missing INTERNAL_API_KEY. Set VITE_INTERNAL_API_KEY in the frontend environment to allow calling protected API routes."
-  );
-  return undefined;
-}
+import { login } from "@/userUtils/LoginUser";
 
 export function renderLogin(root: HTMLElement) {
   const container = document.createElement("div");
@@ -82,39 +62,13 @@ export function renderLogin(root: HTMLElement) {
     const username = (container.querySelector("#username") as HTMLInputElement).value;
     const password = (container.querySelector("#password") as HTMLInputElement).value;
     console.log("Login attempt:", { username, password });
+     
     try {
-      const gatewayBase = resolveGatewayBase();
-      const url = `${gatewayBase}/api/users/login`;
-      const headers: Record<string, string> = {
-        "content-type": "application/json;charset=UTF-8",
-      };
-      const apiKey = getInternalApiKey();
-      if (apiKey) headers["x-internal-api-key"] = apiKey;
-
-      const response = await window.fetch(url, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          username,
-          password,
-        }),
-      });
-
-      const payload = await response.json();
-      if (!response.ok) {
-        console.error("Login failed:", payload);
-        return;
-      }
-
-      const token = payload?.token;
-      if (typeof token === "string" && token.length > 0) {
-        setAccessToken(token);
-        console.log("Login successful");
-      } else {
-        console.warn("Login succeeded but no token was returned.", payload);
-      }
+      const token = await login(username, password);
+      console.log("Login OK, token:", token);
+      location.hash = "#/profile";
     } catch (err) {
-      console.error("Login failed:", err);
+      alert((err as Error).message);
     }
   });
 }
