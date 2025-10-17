@@ -15,6 +15,13 @@ export async function renderProfile(root: HTMLElement) {
       username = decoded;
     }
   }
+
+  try {
+  const data = await getUserDataFromName(username);
+  console.log("Datos del usuario:", data);
+} catch (e) {
+  console.error(e);
+}
   
   const medalUrl = new URL("../imgs/medal.png", import.meta.url).href;
   const editUrl = new URL("../imgs/edit.png", import.meta.url).href;
