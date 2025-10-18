@@ -40,7 +40,7 @@ $(ENV_FILE): $(ENV_FILE).example
 	cp .env.example .env
 	sed -i '0,/{generated-by-makefile}/s//$(shell openssl rand -hex 32)/' .env
 	sed -i '0,/{generated-by-makefile}/s//$(shell openssl rand -hex 32)/' .env
-	echo "VITE_INTERNAL_API_KEY=$$API_KEY" > $(ENV_FILE)
+	echo "\nVITE_INTERNAL_API_KEY=$$INTERNAL_API_KEY" >> $(ENV_FILE)
 
 build: $(ENV_FILE) $(CERTS_DIR)
 
@@ -59,6 +59,8 @@ test:
 	docker compose exec tournaments npm test
 	$(call help_message, "Running tournaments DB smoke test...")
 	docker compose exec tournaments npm run db:smoke
+	$(call help_message, "Running tournaments score reporting tests...")
+	docker compose exec tournaments node score_reporting_test.js
 	$(call help_message, "Running end-to-end tournament test...")
 	$(MAKE) e2e_tournament	
 
