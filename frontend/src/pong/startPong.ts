@@ -17,8 +17,8 @@ export function startPong(canvas: HTMLCanvasElement,
   options: {
     aiPlayer1?: boolean;
     aiPlayer2?: boolean;
-    render3D?: (state: GameState, config: GameConfig) => void; // ⬅ nuevo hook por frame
-    skip2DDraw?: boolean;                                       // ⬅ no dibujar el canvas 2D
+    render3D?: (state: GameState, config: GameConfig) => void;
+    skip2DDraw?: boolean;
   } = {}
 ) {
   const {
@@ -30,16 +30,15 @@ export function startPong(canvas: HTMLCanvasElement,
 
   const ctx = canvas.getContext("2d")!;
 
-  // Dimensiones reales del canvas (para el caso en que SÍ dibujemos 2D)
+
   canvas.width = canvas.clientWidth || canvas.width;
   canvas.height = canvas.clientHeight || canvas.height;
 
-  // Espacio virtual fijo para la física
   const BASE_WIDTH = 900;
   const BASE_HEIGHT = 600;
 
   const targetFPS = 60;
-  // velocidades en "pixeles virtuales por frame"
+
   const config: GameConfig = {
     paddleHeight: 100,
     paddleWidth: 25,
@@ -86,7 +85,6 @@ export function startPong(canvas: HTMLCanvasElement,
       update(BASE_WIDTH, BASE_HEIGHT, state, config, keys, onGameOver);
     }
 
-    // Dibujo 2D (opcional)
     if (!skip2DDraw) {
       ctx.save();
       ctx.scale(canvas.width / BASE_WIDTH, canvas.height / BASE_HEIGHT);
