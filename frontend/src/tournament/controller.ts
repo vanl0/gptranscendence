@@ -1,6 +1,8 @@
+import { postMatch, generateMatchId } from "@/userUtils/UserMatch";
 import { renderGame } from "../views/Game";
 import { TournamentState } from "./state";
 import { createMatchList } from "./ui";
+import type { GameOverState } from "@/pong/types";
 
 // runs the current match of the tournament, handles the winner, and shows a "Proceed" overlay
 export function playNextMatch(root: HTMLElement, state: TournamentState) {
@@ -11,10 +13,10 @@ export function playNextMatch(root: HTMLElement, state: TournamentState) {
   root.innerHTML = "";
 
   state.stopCurrentGame = renderGame(
-    root, { tournament: true, player1: p1, player2: p2, aiPlayer1: p1.startsWith("[AI]"), aiPlayer2: p2.startsWith("[AI]"), onGameOver: (winnerIndex) => {
+    root, { tournament: true, player1: p1, player2: p2, aiPlayer1: p1.startsWith("[AI]"), aiPlayer2: p2.startsWith("[AI]"), onGameOver: ({ winner }: GameOverState) => {
       if (!state.active) return;
-      const winner = winnerIndex === 1 ? p1 : p2;
-      state.winners.push(winner);
+      const resolvedWinner = winner === 1 ? p1 : p2;
+      state.winners.push(resolvedWinner);
 
       const gameContainer = root.querySelector<HTMLDivElement>("#game-container");
       if (!gameContainer) return;
@@ -42,6 +44,11 @@ export function playNextMatch(root: HTMLElement, state: TournamentState) {
         // Tournament finished
         if (state.currentMatch >= state.matches.length) {
           alert("Tournament finished! Winner: " + state.winners[0]);
+          postMatch({
+            tournament_id: generateMatchId(),
+            a_participant_score: null,
+            b_participant_score: null,
+          });
           location.hash = "/";
           return;
         }

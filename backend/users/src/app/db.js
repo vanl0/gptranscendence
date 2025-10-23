@@ -17,10 +17,20 @@ class UsersDatabase extends Database {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL UNIQUE,
         display_name TEXT UNIQUE,
-        avatar_url TEXT DEFAULT 'https://avatar.iran.liara.run/public',
+        avatar_url TEXT,
         bio TEXT DEFAULT 'Hey! this is me, and I haven''t updated my bio yet...',
+        is_active BOOLEAN DEFAULT 1,
         FOREIGN KEY (user_id) REFERENCES users_auth(id) ON DELETE CASCADE
       );
+
+      CREATE TRIGGER IF NOT EXISTS set_random_avatar
+        AFTER INSERT ON users_profile
+        FOR EACH ROW
+        BEGIN
+          UPDATE users_profile
+          SET avatar_url = 'https://api.dicebear.com/9.x/bottts-neutral/svg?size=200&seed=' || hex(randomblob(8))
+          WHERE id = NEW.id;
+      END;
 
       CREATE TABLE IF NOT EXISTS friends (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -189,7 +199,7 @@ class UsersDatabase extends Database {
   getProfile(user_id) {
     try {
       const stmt = this.prepare(`
-        SELECT ua.username, up.display_name, up.avatar_url, up.bio, ua.created_at
+        SELECT ua.username, up.display_name, up.avatar_url, up.bio, ua.created_at, up.is_active
         FROM users_auth ua
         JOIN users_profile up ON ua.id = up.user_id
         WHERE up.user_id = ?
@@ -247,6 +257,9 @@ class UsersDatabase extends Database {
 
   addMatchResult(match) {
     try {
+      if (match.a_participant_id === 0 && match.b_participant_id === 0)
+        throw JSONError('Both participants are bots', 400);
+
       const stmt = this.prepare(`
         INSERT INTO match_history (tournament_id, match_id, match_date, a_participant_id, b_participant_id, a_participant_score, b_participant_score, winner_id, loser_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -304,6 +317,20 @@ class UsersDatabase extends Database {
         insertStmt.run(a_friend_id, b_friend_id, a_friend_id);
         return { message: 'Friend request sent' };
       }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  setSessionState(username, is_active) {
+    try {
+      const stmt = this.prepare(`
+        UPDATE users_profile
+        SET is_active = ?
+        WHERE user_id = (SELECT id FROM users_auth WHERE username = ?)
+      `);
+      const info = stmt.run(is_active ? 1 : 0, username);
+      if (info.changes === 0) throw JSONError('User not found', 404);
     } catch (error) {
       throw error;
     }

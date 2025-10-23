@@ -247,6 +247,17 @@ test('`users` tests', async (t) => {
 
       t.assert.ok(user2Response.body.token);
       tokens.user2 = user2Response.body.token;
+
+      await t.test('Ensure user is marked as active after login', async (t) => {
+        const profileResponse = await supertest(server)
+          .get(`/api/users/${ids.user2}`)
+          .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+          .set('Authorization', `Bearer ${tokens.user2}`)
+          .expect(200)
+          .expect('Content-Type', 'application/json; charset=utf-8');
+
+        t.assert.deepStrictEqual(profileResponse.body.is_active, 1);
+      });
     });
 
     await t.test('Login with incorrect credentials', async (t) => {
@@ -282,6 +293,17 @@ test('`users` tests', async (t) => {
       .expect('Content-Type', 'application/json; charset=utf-8');
 
       t.assert.deepStrictEqual(response.body, { message: 'Logged out successfully' });
+
+      await t.test('Ensure user is marked as inactive after logout', async (t) => {
+        const profileResponse = await supertest(server)
+        .get(`/api/users/${ids.user1}`)
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+        .set('Authorization', `Bearer ${tokens.admin}`)
+        .expect(200)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(profileResponse.body.is_active, 0);
+      });
     });
 
     await t.test('Logout with blacklisted token', async (t) => {
@@ -779,11 +801,11 @@ test('`users` tests', async (t) => {
     });
   });
 
-  await t.test('GET `/:user_id/match_history` route', async (t) => {
+  await t.test('GET `/:user_id/match-history` route', async (t) => {
 
     await t.test('Get match history without token', async (t) => {
       const response = await supertest(server)
-      .get(`/api/users/${ids.user1}/match_history`)
+      .get(`/api/users/${ids.user1}/match-history`)
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
       .expect(401)
       .expect('Content-Type', 'application/json; charset=utf-8');
@@ -793,7 +815,7 @@ test('`users` tests', async (t) => {
 
     await t.test('Get match history with blacklisted token', async (t) => {
       const response = await supertest(server)
-      .get(`/api/users/${ids.user1}/match_history`)
+      .get(`/api/users/${ids.user1}/match-history`)
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
       .set('Authorization', `Bearer ${tokens.user1}`)
       .expect(401)
@@ -804,7 +826,7 @@ test('`users` tests', async (t) => {
 
     await t.test('Get match history with valid token as different user', async (t) => {
       const response = await supertest(server)
-      .get(`/api/users/${ids.user1}/match_history`)
+      .get(`/api/users/${ids.user1}/match-history`)
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
       .set('Authorization', `Bearer ${tokens.user2}`)
       .expect(200)
@@ -817,7 +839,7 @@ test('`users` tests', async (t) => {
 
     await t.test('Get match history with valid token as the same user', async (t) => {
       const response = await supertest(server)
-      .get(`/api/users/${ids.user2}/match_history`)
+      .get(`/api/users/${ids.user2}/match-history`)
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
       .set('Authorization', `Bearer ${tokens.user2}`)
       .expect(200)

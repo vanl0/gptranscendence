@@ -13,7 +13,7 @@ export type Match = {
 
 async function getMatchHistory(userId: number): Promise<Match[]> {
     const token = localStorage.getItem("auth_token");
-    const url = `/api/users/${userId}/match_history`;
+    const url = `/api/users/${userId}/match-history`;
     const res = await fetch(url, {
         method: "GET",
         headers: {
@@ -40,7 +40,7 @@ export async function renderLastMatches(userId: number) {
       .map(
         (m) => `
       <li class="grid grid-cols-[1fr,1fr,1fr] px-3 py-2">
-        <span>${m.opponent_username}</span>
+        <span>AI</span>
         <span class="${m.user_score > m.opponent_score ? "text-green-500" : "text-red-500"}">
           ${m.user_score} - ${m.opponent_score}
         </span>

@@ -1,4 +1,4 @@
-import { GameState, GameConfig, KeyState } from "./types";
+import { GameState, GameConfig, KeyState, GameOverState } from "./types";
 
 // updates the game state for a single frame (width & height are the virtual game are dimensions).
 export function update(
@@ -7,15 +7,15 @@ export function update(
   state: GameState,
   config: GameConfig,
   keys: KeyState,
-  onGameOver: (winner: number) => void
+  onGameOver: (result: GameOverState) => void
 ) {
   const { paddleHeight, paddleWidth, ballSize } = config;
 
   // Player movement (depends on keys pressed)
-  if (keys["w"]) state.paddle1Y = Math.max(0, state.paddle1Y - config.paddleSpeed);
-  if (keys["s"]) state.paddle1Y = Math.min(height - paddleHeight, state.paddle1Y + config.paddleSpeed);
-  if (keys["ArrowUp"]) state.paddle2Y = Math.max(0, state.paddle2Y - config.paddleSpeed);
-  if (keys["ArrowDown"]) state.paddle2Y = Math.min(height - paddleHeight, state.paddle2Y + config.paddleSpeed);
+  if (keys["w"] || keys["a"]) state.paddle1Y = Math.max(0, state.paddle1Y - config.paddleSpeed);
+  if (keys["s"] || keys["d"]) state.paddle1Y = Math.min(height - paddleHeight, state.paddle1Y + config.paddleSpeed);
+  if (keys["ArrowUp"] || keys["ArrowRight"]) state.paddle2Y = Math.max(0, state.paddle2Y - config.paddleSpeed);
+  if (keys["ArrowDown"] || keys["ArrowLeft"]) state.paddle2Y = Math.min(height - paddleHeight, state.paddle2Y + config.paddleSpeed);
 
   // Ball movement
   state.ballX += state.ballSpeedX;
@@ -67,11 +67,21 @@ export function update(
   // Game over
   if (state.score1 === 3) {
     state.gameRunning = false;
-    onGameOver(1);
+    onGameOver({
+      winner: 1,
+      score1: state.score1,
+      score2: state.score2,
+      state: {...state}
+    });
   }
   if (state.score2 === 3) {
     state.gameRunning = false;
-    onGameOver(2);
+    onGameOver({
+      winner: 2,
+      score1: state.score1,
+      score2: state.score2,
+      state: {...state}
+    });
   }
 }
 

@@ -1,4 +1,4 @@
-import { GameState, GameConfig, KeyState } from "./types";
+import { GameState, GameConfig, KeyState, GameOverState } from "./types";
 import { draw } from "./draw";
 import { update } from "./update";
 import { setupInput } from "./input";
@@ -13,7 +13,7 @@ startPong(): boots up the Pong game loop, handles physics, drawing, input, AI, p
   options: which player(s) should be AI-controlled
 */
 export function startPong(canvas: HTMLCanvasElement,
-  onGameOver: (winner: number) => void,
+  onGameOver: (result: GameOverState) => void,
   options: {
     aiPlayer1?: boolean;
     aiPlayer2?: boolean;
@@ -29,7 +29,6 @@ export function startPong(canvas: HTMLCanvasElement,
   } = options;
 
   const ctx = canvas.getContext("2d")!;
-
 
   canvas.width = canvas.clientWidth || canvas.width;
   canvas.height = canvas.clientHeight || canvas.height;
@@ -85,6 +84,7 @@ export function startPong(canvas: HTMLCanvasElement,
       update(BASE_WIDTH, BASE_HEIGHT, state, config, keys, onGameOver);
     }
 
+    // Dibujo 2D (opcional)
     if (!skip2DDraw) {
       ctx.save();
       ctx.scale(canvas.width / BASE_WIDTH, canvas.height / BASE_HEIGHT);
