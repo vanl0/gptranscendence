@@ -1,6 +1,6 @@
 import { startPong } from "../pong/startPong";
 import { startPong3D } from "../3d/renderStart";
-import { is3DActive } from "@/tournament/state";
+import { is3DActive, type TournamentState } from "@/tournament/state";
 import { postMatch, generateMatchId } from "@/userUtils/UserMatch";
 import { getUserIdFromToken, getUsernameFromToken, getDisplayName} from "@/userUtils";
 import { isUserLoggedIn } from "@/userUtils";
@@ -9,12 +9,12 @@ import type { GameOverState } from "@/pong/types";
 type RenderGameOptions = {
   onePlayer?: boolean;
   tournament?: boolean;
-
+  tournamentState?: TournamentState;
   player1?: string;
   player2?: string;
   aiPlayer1?: boolean;
   aiPlayer2?: boolean;
-  onGameOver?: (result: GameOverState) => void;
+  onGameOver?: (result: GameOverState, tournament?: TournamentState) => void;
 };
 
 /*
@@ -30,6 +30,7 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
   const {
     onePlayer = false,
     tournament = false,
+    tournamentState,
     onGameOver
   } = options;
 
@@ -103,9 +104,10 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
         const overlay = document.createElement("div");
         overlay.className = "absolute inset-0 flex flex-col justify-center items-center gap-6";
         
-		if (!(aiP2 && aiP1)){
-			const userScore = aiP1 && !aiP2 ? score2 : score1;
-          	const opponentScore = aiP1 && !aiP2 ? score1 : score2;
+		if (!(aiP2 && aiP1) && !(tournamentState?.active && tournamentState.currentMatch >= tournamentState.matches.length)){
+			console.log(`current: ${tournamentState?.currentMatch}, is final: ${tournamentState?.active && tournamentState.currentMatch >= tournamentState.matches.length}`);
+      const userScore = aiP1 && !aiP2 ? score2 : score1;
+      const opponentScore = aiP1 && !aiP2 ? score1 : score2;
 			try {
             	await postMatch({
             		tournament_id: 0,
@@ -135,7 +137,7 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
         setTimeout(() => {
           if (tournament && onGameOver) {
             // tournament: go to next match
-            onGameOver(result);
+            onGameOver(result, tournamentState);
           } else {
             // normal game: show Play Again
             const buttonOverlay = document.createElement("div");
