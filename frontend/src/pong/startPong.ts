@@ -62,6 +62,8 @@ export function startPong(canvas: HTMLCanvasElement,
     score2: 0,
     gameRunning: true,
     ballFlash: 0,
+    paddle1Flash: 0,
+    paddle2Flash: 0,
   };
 
   const keys: KeyState = {};

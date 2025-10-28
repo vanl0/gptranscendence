@@ -103,10 +103,12 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
         const overlay = document.createElement("div");
         overlay.className = "absolute inset-0 flex flex-col justify-center items-center gap-6 overlay";
         
+        const remainingMatches = tournamentState?.matches.filter((m) => m.status !== "finished") ?? [];
         const isTournamentFinalMatch = Boolean(
           tournamentState?.active &&
-          tournamentState.matches.length === 1 &&
-          tournamentState.currentMatch === 0
+          tournamentState?.nextMatchId !== null &&
+          remainingMatches.length === 1 &&
+          remainingMatches[0].id === tournamentState.nextMatchId
         );
         if (!(aiP2 && aiP1) && !isTournamentFinalMatch) {
           console.log(`current: ${tournamentState?.currentMatch}, is final: ${isTournamentFinalMatch}`);

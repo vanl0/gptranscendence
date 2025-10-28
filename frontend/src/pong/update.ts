@@ -39,6 +39,7 @@ export function update(
     state.ballY <= state.paddle1Y + paddleHeight
   ) {
     state.ballX = 20 + paddleWidth;
+    state.paddle1Flash = 12;
     handleBounce(state, config, state.paddle1Y, paddleHeight, 1);
   }
 
@@ -49,11 +50,14 @@ export function update(
     state.ballY <= state.paddle2Y + paddleHeight
   ) {
     state.ballX = width - 20 - paddleWidth - ballSize;
+    state.paddle2Flash = 12;
     handleBounce(state, config, state.paddle2Y, paddleHeight, -1);
   }
 
   // Flash timers
   if (state.ballFlash > 0) state.ballFlash--;
+  if (state.paddle1Flash > 0) state.paddle1Flash--;
+  if (state.paddle2Flash > 0) state.paddle2Flash--;
 
   // Scoring
   if (state.ballX < 0) {
@@ -109,4 +113,6 @@ function resetBall(width: number, height: number, config: GameConfig, state: Gam
   state.ballY = height / 2 - config.ballSize / 2;
   state.ballSpeedX = Math.random() > 0.5 ? config.minSpeed / 3 : -config.minSpeed / 3;
   state.ballSpeedY = Math.random() > 0.5 ? Math.random() * config.minSpeed / 3 : Math.random() * -config.minSpeed / 3;
+  state.paddle1Flash = 0;
+  state.paddle2Flash = 0;
 }
