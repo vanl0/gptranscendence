@@ -98,33 +98,14 @@ export async function playNextMatch(root: HTMLElement, state: TournamentState) {
               points_to_win: pointsToWin,
             })
               .then((res) => {
-                const txHash = typeof res?.txHash === "string" ? res.txHash.trim() : "";
-                const config = res?.blockchainConfig ?? null;
-
-                const explorerUrl = buildExplorerUrl(txHash, config);
-
-                if (explorerUrl) {
+                if (res.txHash) {
                   const bcBtn = document.createElement("a");
-                  bcBtn.href = explorerUrl;
+                  bcBtn.href = `https://testnet.snowtrace.io/tx/${res.txHash}`;
                   bcBtn.target = "_blank";
                   bcBtn.rel = "noopener noreferrer";
                   bcBtn.textContent = "View Blockchain Transaction";
-                  bcBtn.className =
-                    "mt-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-500 transition-colors duration-200";
+                  bcBtn.className = "mt-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-500 transition-colors duration-200";
                   finalOverlay.appendChild(bcBtn);
-                } else if (txHash) {
-                  const bcMsg = document.createElement("p");
-                  bcMsg.className = "mt-2 text-[2vh] text-cyan-300 text-center max-w-[32rem]";
-
-                  if (isMockHash(txHash) || (config?.mode ?? "").toLowerCase() !== "real") {
-                    bcMsg.textContent = "Blockchain recorded in mock mode (no public explorer link).";
-                  } else if (config?.network) {
-                    bcMsg.textContent = `Transaction recorded on ${config.network}, but no explorer link is available for this network.`;
-                  } else {
-                    bcMsg.textContent = "Transaction recorded on-chain, but no explorer link is available.";
-                  }
-
-                  finalOverlay.appendChild(bcMsg);
                 }
               })
               .catch((err) => console.error("Failed to record final on blockchain:", err));
