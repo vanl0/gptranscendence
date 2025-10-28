@@ -61,6 +61,8 @@ export function startPong(canvas: HTMLCanvasElement,
     score1: 0,
     score2: 0,
     gameRunning: true,
+    paddle1Flash: 0,
+    paddle2Flash: 0,
     ballFlash: 0,
   };
 
