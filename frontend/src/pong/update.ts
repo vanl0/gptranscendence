@@ -39,6 +39,7 @@ export function update(
     state.ballY <= state.paddle1Y + paddleHeight
   ) {
     state.ballX = 20 + paddleWidth;
+    state.paddle1Flash = 6;
     handleBounce(state, config, state.paddle1Y, paddleHeight, 1);
   }
 
@@ -49,10 +50,13 @@ export function update(
     state.ballY <= state.paddle2Y + paddleHeight
   ) {
     state.ballX = width - 20 - paddleWidth - ballSize;
+    state.paddle2Flash = 6;
     handleBounce(state, config, state.paddle2Y, paddleHeight, -1);
   }
 
   // Flash timers
+  if (state.paddle1Flash > 0) state.paddle1Flash--;
+  if (state.paddle2Flash > 0) state.paddle2Flash--;
   if (state.ballFlash > 0) state.ballFlash--;
 
   // Scoring
