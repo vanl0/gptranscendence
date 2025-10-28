@@ -18,6 +18,8 @@ k=os.environ.get("PRIVATE_KEY","")
 print("OK" if re.fullmatch(r"0x[0-9a-fA-F]{64}",k) else "BAD", len(k))
 PY
 # Tip: never use the Unicode ellipsis character (…); paste the full 66-char key. export REGISTRY_ADDRESS="0x...";                             # after deploy
+ # Optional: override the explorer host if you are not using Snowtrace
+ # export BLOCKCHAIN_EXPLORER_BASE="https://testnet.snowtrace.io"
  export INTERNAL_API_KEY="your-internal-key"                  # gateway auth
  ```
 

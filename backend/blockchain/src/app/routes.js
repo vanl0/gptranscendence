@@ -115,8 +115,28 @@ async function routes(fastify) {
         : null);
     const registryAddress = process.env.REGISTRY_ADDRESS || null; // public contract address (when set)
     const mode = ready ? 'real' : 'mock';
-    return { enabled, mode, ready, network, registryAddress };
-  }); 
+
+    const manualExplorer = process.env.BLOCKCHAIN_EXPLORER_BASE && process.env.BLOCKCHAIN_EXPLORER_BASE.trim()
+      ? process.env.BLOCKCHAIN_EXPLORER_BASE.trim()
+      : null;
+
+    let explorerBaseUrl = manualExplorer;
+    if (!explorerBaseUrl) {
+      const normalized = network ? network.trim().toLowerCase() : '';
+      if (normalized.includes('fuji') || normalized.includes('test')) {
+        explorerBaseUrl = 'https://testnet.snowtrace.io';
+      } else if (
+        normalized.includes('avax') ||
+        normalized.includes('avalanche') ||
+        normalized.includes('mainnet') ||
+        normalized.includes('c-chain')
+      ) {
+        explorerBaseUrl = 'https://snowtrace.io';
+      }
+    }
+
+    return { enabled, mode, ready, network, registryAddress, explorerBaseUrl };
+  });
 }
 
 module.exports = routes;
