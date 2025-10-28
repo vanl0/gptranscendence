@@ -98,66 +98,14 @@ export async function playNextMatch(root: HTMLElement, state: TournamentState) {
               points_to_win: pointsToWin,
             })
               .then((res) => {
-                const txHash = typeof res?.txHash === "string" ? res.txHash.trim() : "";
-                const config = res?.blockchainConfig ?? null;
-
-                const explorerUrl = buildExplorerUrl(txHash, config);
-
-                if (explorerUrl) {
+                if (res.txHash) {
                   const bcBtn = document.createElement("a");
-                  bcBtn.href = explorerUrl;
+                  bcBtn.href = `https://testnet.snowtrace.io/tx/${res.txHash}`;
                   bcBtn.target = "_blank";
                   bcBtn.rel = "noopener noreferrer";
                   bcBtn.textContent = "View Blockchain Transaction";
-                  bcBtn.className =
-                    "mt-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-500 transition-colors duration-200";
+                  bcBtn.className = "mt-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-500 transition-colors duration-200";
                   finalOverlay.appendChild(bcBtn);
-                } else if (txHash) {
-                  const bcMsg = document.createElement("div");
-                  bcMsg.className = "mt-2 text-[2vh] text-cyan-300 text-center max-w-[36rem] flex flex-col gap-2";
-
-                  const heading = document.createElement("p");
-                  heading.className = "font-semibold";
-
-                  if (isMockHash(txHash) || (config?.mode ?? "").toLowerCase() !== "real") {
-                    heading.textContent = "Blockchain mock mode";
-
-                    const details = document.createElement("p");
-                    details.textContent =
-                      "Tournament finals are being stored locally because the blockchain service is still running in mock mode.";
-
-                    const checklist = document.createElement("ul");
-                    checklist.className = "list-disc list-inside text-left mx-auto text-[1.9vh]";
-
-                    [
-                      "Set BLOCKCHAIN_ENABLED=true in backend/blockchain/.env",
-                      "Provide RPC_URL, PRIVATE_KEY, and REGISTRY_ADDRESS so the service can submit real transactions",
-                      "Restart the blockchain and API services after updating the environment",
-                    ].forEach((item) => {
-                      const li = document.createElement("li");
-                      li.textContent = item;
-                      checklist.appendChild(li);
-                    });
-
-                    const hint = document.createElement("p");
-                    hint.className = "italic";
-                    hint.textContent = "See docs/CHAIN.md for the full deployment checklist.";
-
-                    bcMsg.append(heading, details, checklist, hint);
-                  } else if (config?.network) {
-                    heading.textContent = `No explorer configured for ${config.network}`;
-                    const details = document.createElement("p");
-                    details.textContent =
-                      "The final match was recorded, but the explorer base URL for this network is unknown.";
-                    bcMsg.append(heading, details);
-                  } else {
-                    heading.textContent = "Explorer unavailable";
-                    const details = document.createElement("p");
-                    details.textContent = "The final match was recorded on-chain, but no explorer link is available.";
-                    bcMsg.append(heading, details);
-                  }
-
-                  finalOverlay.appendChild(bcMsg);
                 }
               })
               .catch((err) => console.error("Failed to record final on blockchain:", err));
@@ -189,20 +137,6 @@ function buildExplorerUrl(txHash: string, config: BlockchainConfig | null): stri
 
   if (!config || (config.mode ?? "").toLowerCase() !== "real") {
     return null;
-  }
-
-  const base = config.explorerBaseUrl?.trim();
-  if (base) {
-    try {
-      const origin = typeof window !== "undefined" ? window.location.origin : "https://localhost";
-      const absoluteBase = base.includes("://")
-        ? base
-        : `${origin.replace(/\/+$/, "")}/${base.replace(/^\/+/, "")}`;
-      const cleaned = absoluteBase.replace(/\/+$/, "");
-      return `${cleaned}/tx/${txHash}`;
-    } catch (err) {
-      console.warn("Invalid explorer base URL provided:", base, err);
-    }
   }
 
   const network = config.network?.trim().toLowerCase();
