@@ -1,4 +1,7 @@
-import { postFinalToChain } from "@/blockchain/postFinal";
+import {
+  postFinalToChain,
+  type BlockchainConfig,
+} from "@/blockchain/postFinal";
 import { renderGame } from "../views/Game";
 import { TournamentState } from "./state";
 import { createMatchList } from "./ui";
@@ -125,6 +128,33 @@ export async function playNextMatch(root: HTMLElement, state: TournamentState) {
       });
     },
   });
+}
+
+function buildExplorerUrl(txHash: string, config: BlockchainConfig | null): string | null {
+  if (!/^0x[0-9a-fA-F]{64}$/.test(txHash)) {
+    return null;
+  }
+
+  if (!config || (config.mode ?? "").toLowerCase() !== "real") {
+    return null;
+  }
+
+  const network = config.network?.trim().toLowerCase();
+  if (!network) return null;
+
+  if (network.includes("fuji") || network.includes("test")) {
+    return `https://testnet.snowtrace.io/tx/${txHash}`;
+  }
+
+  if (network.includes("avax") || network.includes("avalanche") || network.includes("mainnet") || network.includes("c-chain")) {
+    return `https://snowtrace.io/tx/${txHash}`;
+  }
+
+  return null;
+}
+
+function isMockHash(txHash: string): boolean {
+  return /^0xmock_/i.test(txHash);
 }
 
 export function showMatchList(root: HTMLElement, state: TournamentState) {
