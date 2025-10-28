@@ -2,8 +2,7 @@ import { startPong } from "../pong/startPong";
 import { startPong3D } from "../3d/renderStart";
 import { is3DActive, type TournamentState } from "@/tournament/state";
 import { postMatch, generateMatchId } from "@/userUtils/UserMatch";
-import { getUserIdFromToken, getUsernameFromToken, getDisplayName} from "@/userUtils";
-import { isUserLoggedIn } from "@/userUtils";
+import { getUserIdFromToken, getUsernameFromToken, getDisplayName, isUserLoggedIn } from "@/userUtils";
 import type { GameOverState } from "@/pong/types";
 
 type RenderGameOptions = {
@@ -102,18 +101,23 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
       async (result: GameOverState) => {
 		const { winner, score1, score2} = result;
         const overlay = document.createElement("div");
-        overlay.className = "absolute inset-0 flex flex-col justify-center items-center gap-6";
+        overlay.className = "absolute inset-0 flex flex-col justify-center items-center gap-6 overlay";
         
-		if (!(aiP2 && aiP1) && !(tournamentState?.active && tournamentState.currentMatch >= tournamentState.matches.length)){
-			console.log(`current: ${tournamentState?.currentMatch}, is final: ${tournamentState?.active && tournamentState.currentMatch >= tournamentState.matches.length}`);
-      const userScore = aiP1 && !aiP2 ? score2 : score1;
-      const opponentScore = aiP1 && !aiP2 ? score1 : score2;
-			try {
-            	await postMatch({
-            		tournament_id: 0,
-            		a_participant_score: userScore,
-            		b_participant_score: opponentScore,
-            	});
+        const isTournamentFinalMatch = Boolean(
+          tournamentState?.active &&
+          tournamentState.matches.length === 1 &&
+          tournamentState.currentMatch === 0
+        );
+        if (!(aiP2 && aiP1) && !isTournamentFinalMatch) {
+          console.log(`current: ${tournamentState?.currentMatch}, is final: ${isTournamentFinalMatch}`);
+          const userScore = aiP1 && !aiP2 ? score2 : score1;
+          const opponentScore = aiP1 && !aiP2 ? score1 : score2;
+          try {
+            await postMatch({
+              tournament_id: 0,
+              a_participant_score: userScore,
+              b_participant_score: opponentScore,
+            });
           } catch (error) {
             console.error("Failed to post match", error);
           }
