@@ -12,7 +12,6 @@ export interface BlockchainConfig {
   ready: boolean;
   network: string | null;
   registryAddress: string | null;
-  explorerBaseUrl: string | null;
 }
 
 export interface PostFinalResponse {
