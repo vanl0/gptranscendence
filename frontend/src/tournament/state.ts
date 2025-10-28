@@ -1,22 +1,77 @@
-import { generateMatchId } from "@/userUtils/UserMatch";
+export interface TournamentParticipant {
+  id: number;
+  alias: string;
+  isBot: boolean;
+  userId: number | null;
+}
+
+export interface TournamentMatchSlot {
+  id: number | null;
+  alias: string;
+  isBot: boolean;
+}
+
+export interface TournamentMatchView {
+  id: number;
+  round: number;
+  status: "scheduled" | "in_progress" | "finished";
+  order: number;
+  a: TournamentMatchSlot;
+  b: TournamentMatchSlot;
+  scoreA: number | null;
+  scoreB: number | null;
+  winnerAlias: string | null;
+}
+
+export type SubmitScoreFn = (matchId: number, scoreA: number, scoreB: number) => Promise<void>;
+export type ReloadStateFn = () => Promise<void>;
 
 export interface TournamentState {
-    active: boolean;
-    currentMatch: number;
-    matches: [string, string][];
-    winners: string[];
-    stopCurrentGame: (() => void) | null;
-    tournamentId: number; // blockchain integration
+  active: boolean;
+  currentMatch: number;
+  matches: TournamentMatchView[];
+  stopCurrentGame: (() => void) | null;
+  tournamentId: number;
+  pointsToWin: number;
+  participants: Record<number, TournamentParticipant>;
+  nextMatchId: number | null;
+  submitScore: SubmitScoreFn;
+  reload: ReloadStateFn;
 }
-  
-export function createTournamentState(matches: [string, string][]): TournamentState {
+
+type CreateTournamentStateParams = {
+  tournamentId: number;
+  pointsToWin: number;
+  matches: TournamentMatchView[];
+  participants: Record<number, TournamentParticipant>;
+  nextMatchId: number | null;
+  submitScore: SubmitScoreFn;
+  reload: ReloadStateFn;
+};
+
+export function createTournamentState({
+  tournamentId,
+  pointsToWin,
+  matches,
+  participants,
+  nextMatchId,
+  submitScore,
+  reload,
+}: CreateTournamentStateParams): TournamentState {
+  const currentMatch =
+    nextMatchId !== null ? matches.findIndex((m) => m.id === nextMatchId) : -1;
+
   return {
-      active: true,
-      currentMatch: 0,
-      matches,
-      winners: [],
-      stopCurrentGame: null,
-      tournamentId: generateMatchId(),
+    active: currentMatch !== -1,
+    currentMatch,
+    matches,
+    stopCurrentGame: null,
+    tournamentId,
+    pointsToWin,
+    participants,
+    nextMatchId,
+    submitScore,
+    reload,
   };
 }
 

@@ -1,16 +1,18 @@
 export interface GameState {
-	paddle1Y: number;
-	paddle2Y: number;
-	ballX: number;
-	ballY: number;
-	ballSpeedX: number;
-	ballSpeedY: number;
-	score1: number;
-	score2: number;
-	gameRunning: boolean;
-	animationId?: number;
+        paddle1Y: number;
+        paddle2Y: number;
+        ballX: number;
+        ballY: number;
+        ballSpeedX: number;
+        ballSpeedY: number;
+        score1: number;
+        score2: number;
+        gameRunning: boolean;
+        animationId?: number;
 
-	ballFlash: number; // number of frames for flashing perfect shot
+        paddle1Flash: number;
+        paddle2Flash: number;
+        ballFlash: number; // number of frames for flashing perfect shot
 }
   
 export interface GameConfig {
