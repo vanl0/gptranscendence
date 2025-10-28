@@ -95,24 +95,14 @@ export async function playNextMatch(root: HTMLElement, state: TournamentState) {
               points_to_win: pointsToWin,
             })
               .then((res) => {
-                const txHash = res?.txHash;
-                const isRealHash =
-                  typeof txHash === "string" && /^0x[0-9a-fA-F]{64}$/.test(txHash);
-
-                if (isRealHash) {
+                if (res.txHash) {
                   const bcBtn = document.createElement("a");
-                  bcBtn.href = `https://testnet.snowtrace.io/tx/${txHash}`;
+                  bcBtn.href = `https://testnet.snowtrace.io/tx/${res.txHash}`;
                   bcBtn.target = "_blank";
                   bcBtn.rel = "noopener noreferrer";
                   bcBtn.textContent = "View Blockchain Transaction";
-                  bcBtn.className =
-                    "mt-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-500 transition-colors duration-200";
+                  bcBtn.className = "mt-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-500 transition-colors duration-200";
                   finalOverlay.appendChild(bcBtn);
-                } else if (typeof txHash === "string") {
-                  const bcMsg = document.createElement("p");
-                  bcMsg.textContent = "Blockchain recorded in mock mode (no public explorer link).";
-                  bcMsg.className = "mt-2 text-[2vh] text-cyan-300";
-                  finalOverlay.appendChild(bcMsg);
                 }
               })
               .catch((err) => console.error("Failed to record final on blockchain:", err));
